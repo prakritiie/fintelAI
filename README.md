@@ -2,7 +2,7 @@
 
 Multi-agent financial intelligence and risk analysis platform. Upload a 10-K or annual report, ask questions with cited answers, score news sentiment and financial risk, and run five AI agents end-to-end to get an investment signal.
 
-<!-- Add a demo GIF/video here, e.g. ![FinIntel AI demo](assets/demo.gif) -->
+![FinIntel AI demo](assets/demo.gif)
 
 ## Features
 
