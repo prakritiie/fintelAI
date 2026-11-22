@@ -3,11 +3,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import streamlit as st
+from dashboard.ui import apply_theme, page_header
 
 st.set_page_config(page_title="AI Chat", page_icon="💬", layout="wide")
 
-st.markdown("## 💬 Financial AI Chat")
-st.markdown("Ask questions about your uploaded financial documents.")
+apply_theme()
+page_header("AI Chat", "Ask questions about your indexed financial documents. Answers cite their sources.", eyebrow="Step 2")
 
 # ── Session state ────────────────────────────────────────────
 if "messages" not in st.session_state:
@@ -23,11 +24,11 @@ if "rag_chain" not in st.session_state:
 
 # ── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### ⚙️ Settings")
+    st.markdown("### Settings")
     n_results = st.slider("Chunks to retrieve", 3, 10, 5)
     show_sources = st.toggle("Show source references", value=True)
 
-    st.markdown("### 📚 Indexed Documents")
+    st.markdown("### Indexed documents")
     try:
         from core.vector_store import VectorStore
         vs = VectorStore()
@@ -35,15 +36,15 @@ with st.sidebar:
         count = vs.get_collection_count()
         st.info(f"**{count}** chunks across **{len(sources)}** documents")
         for s in sources:
-            st.markdown(f"✅ `{s}`")
+            st.markdown(f"- `{s}`")
     except Exception as e:
         st.warning(f"Could not load sources: {e}")
 
-    if st.button("🗑️ Clear Chat History"):
+    if st.button("Clear chat history"):
         st.session_state.messages = []
         st.rerun()
 
-    st.markdown("### 💡 Example Questions")
+    st.markdown("### Try asking")
     examples = [
         "What are the major risk factors?",
         "Summarize the revenue performance",
@@ -60,7 +61,7 @@ try:
     from core.vector_store import VectorStore
     vs = VectorStore()
     if vs.get_collection_count() == 0:
-        st.warning("⚠️ No documents indexed yet. Please go to **Upload Documents** first.")
+        st.warning("No documents indexed yet. Please go to **Upload Documents** first.")
         st.stop()
 except Exception:
     pass
@@ -70,7 +71,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if message["role"] == "assistant" and show_sources and "sources" in message:
-            with st.expander("📎 Sources", expanded=False):
+            with st.expander("Sources", expanded=False):
                 for src in message["sources"]:
                     st.markdown(f"**{src['source']}** | Relevance: `{src['score']}`")
                     st.caption(src["preview"])
@@ -89,7 +90,7 @@ if "pending_question" in st.session_state:
                 result = st.session_state.rag_chain.ask(question, n_results=n_results)
                 st.markdown(result["answer"])
                 if show_sources:
-                    with st.expander("📎 Sources", expanded=False):
+                    with st.expander("Sources", expanded=False):
                         for src in result["sources"]:
                             st.markdown(f"**{src['source']}** | Relevance: `{src['score']}`")
                             st.caption(src["preview"])
@@ -115,7 +116,7 @@ if question := st.chat_input("Ask about your financial documents..."):
                 result = st.session_state.rag_chain.ask(question, n_results=n_results)
                 st.markdown(result["answer"])
                 if show_sources:
-                    with st.expander("📎 Sources", expanded=False):
+                    with st.expander("Sources", expanded=False):
                         for src in result["sources"]:
                             st.markdown(f"**{src['source']}** | Relevance: `{src['score']}`")
                             st.caption(src["preview"])

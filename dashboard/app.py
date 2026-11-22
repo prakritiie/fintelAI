@@ -4,6 +4,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 from config.settings import APP_TITLE, APP_ICON
+from dashboard.ui import apply_theme, page_header, card
 
 st.set_page_config(
     page_title=APP_TITLE,
@@ -11,139 +12,78 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# ── Custom CSS ───────────────────────────────────────────────
-st.markdown("""
-<style>
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    }
-    [data-testid="stSidebar"] * {
-        color: #e2e8f0 !important;
-    }
-    .main-header {
-        background: linear-gradient(135deg, #0f172a, #1e3a5f);
-        padding: 2rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    .metric-card {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 10px;
-        padding: 1.2rem;
-        text-align: center;
-    }
-    .status-ok {
-        color: #22c55e;
-        font-weight: bold;
-    }
-</style>
-""", unsafe_allow_html=True)
+apply_theme()
 
 # ── Header ───────────────────────────────────────────────────
-st.markdown("""
-<div class="main-header">
-    <h1 style="color:#38bdf8; font-size:2.5rem; margin:0;">📊 FinIntel AI</h1>
-    <p style="color:#94a3b8; font-size:1.1rem; margin-top:0.5rem;">
-        Multi-Agent Financial Intelligence & Risk Analysis Platform
-    </p>
-</div>
-""", unsafe_allow_html=True)
+page_header(
+    "FinIntel AI",
+    "Multi-agent financial intelligence and risk analysis. Upload a filing, ask questions, "
+    "gauge sentiment and risk, and get an investment view in minutes.",
+    eyebrow="Financial Intelligence Platform",
+)
 
-# ── Overview Cards ───────────────────────────────────────────
-col1, col2, col3, col4 = st.columns(4)
+# ── Capabilities ─────────────────────────────────────────────
+c1, c2, c3, c4 = st.columns(4)
+with c1:
+    card("Document RAG", "Upload 10-Ks and reports, then ask questions with cited sources.")
+with c2:
+    card("Sentiment Analysis", "FinBERT scores the tone of the latest financial news.")
+with c3:
+    card("Risk Prediction", "XGBoost risk scoring with SHAP explanations for every factor.")
+with c4:
+    card("AI Agents", "Five LangGraph agents collaborate on a full company analysis.")
 
-with col1:
-    st.markdown("""
-    <div class="metric-card">
-        <div style="font-size:2rem;">📄</div>
-        <div style="color:#38bdf8; font-weight:bold;">Document RAG</div>
-        <div style="color:#94a3b8; font-size:0.85rem;">Upload & query financial PDFs</div>
-    </div>
-    """, unsafe_allow_html=True)
+# ── Getting started ──────────────────────────────────────────
+st.markdown("### Get started")
+st.caption("Use the sidebar to open any of these tools.")
 
-with col2:
-    st.markdown("""
-    <div class="metric-card">
-        <div style="font-size:2rem;">🧠</div>
-        <div style="color:#a78bfa; font-weight:bold;">Sentiment Analysis</div>
-        <div style="color:#94a3b8; font-size:0.85rem;">FinBERT-powered news analysis</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown("""
-    <div class="metric-card">
-        <div style="font-size:2rem;">⚠️</div>
-        <div style="color:#f59e0b; font-weight:bold;">Risk Prediction</div>
-        <div style="color:#94a3b8; font-size:0.85rem;">ML-based financial risk scoring</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    st.markdown("""
-    <div class="metric-card">
-        <div style="font-size:2rem;">🤖</div>
-        <div style="color:#34d399; font-weight:bold;">AI Agents</div>
-        <div style="color:#94a3b8; font-size:0.85rem;">LangGraph multi-agent workflows</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ── Navigation Guide ─────────────────────────────────────────
-st.markdown("### 🗺️ Navigate Using the Sidebar")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.info("📁 **Upload Documents** — Upload 10-K, annual reports, earnings PDFs")
-    st.info("💬 **AI Chat** — Ask questions about uploaded documents")
-    st.info("📰 **Sentiment Dashboard** — Analyze financial news sentiment")
-
-with col2:
-    st.warning("📊 **Risk Dashboard** — Predict company financial risk")
-    st.warning("🕸️ **Knowledge Graph** — Visualize company relationships")
-    st.warning("🤖 **Agent Workflow** — Watch multi-agent AI in action")
+r1 = st.columns(3)
+r2 = st.columns(3)
+steps = [
+    ("1", "Upload Documents", "Index 10-K filings, annual reports and earnings PDFs."),
+    ("2", "AI Chat", "Ask questions about your indexed documents."),
+    ("3", "Sentiment", "Analyze the tone of recent news for a company."),
+    ("4", "Risk", "Predict financial risk and see what drives it."),
+    ("5", "Knowledge Graph", "Explore companies, competitors, products and risks."),
+    ("6", "Agent Workflow", "Run all agents end-to-end for an investment signal."),
+]
+for col, (n, title, text) in zip(r1 + r2, steps):
+    with col:
+        card(title, text, step=n)
+        st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
 
 # ── System Status ────────────────────────────────────────────
-st.markdown("### 🔧 System Status")
+st.markdown("### System status")
 
-status_col1, status_col2, status_col3 = st.columns(3)
+s1, s2, s3 = st.columns(3)
 
-with status_col1:
+with s1:
     try:
         from core.vector_store import VectorStore
-        vs = VectorStore()
-        count = vs.get_collection_count()
-        st.success(f"✅ Vector DB — {count} chunks indexed")
+        count = VectorStore().get_collection_count()
+        st.success(f"Vector DB: {count} chunks indexed")
     except Exception as e:
-        st.error(f"❌ Vector DB — {e}")
+        st.error(f"Vector DB: {e}")
 
-with status_col2:
+with s2:
     try:
         from config.settings import GROQ_API_KEY
         if GROQ_API_KEY and GROQ_API_KEY != "your_groq_api_key_here":
-            st.success("✅ Groq LLM — Connected")
+            st.success("Groq LLM: API key configured")
         else:
-            st.warning("⚠️ Groq LLM — API key not set")
+            st.warning("Groq LLM: API key not set")
     except Exception as e:
-        st.error(f"❌ Groq LLM — {e}")
+        st.error(f"Groq LLM: {e}")
 
-with status_col3:
+with s3:
     try:
         from config.settings import NEWS_API_KEY
         if NEWS_API_KEY and NEWS_API_KEY != "your_news_api_key_here":
-            st.success("✅ News API — Connected")
+            st.success("News API: API key configured")
         else:
-            st.warning("⚠️ News API — Not configured (optional)")
+            st.warning("News API: not configured (optional)")
     except Exception as e:
-        st.error(f"❌ News API — {e}")
+        st.error(f"News API: {e}")
 
 st.markdown("---")
-st.markdown(
-    "<p style='text-align:center; color:#475569;'>FinIntel AI — Built with LangChain · LangGraph · FinBERT · ChromaDB · Streamlit</p>",
-    unsafe_allow_html=True
-)
+st.caption("Built with LangChain · LangGraph · FinBERT · ChromaDB · Streamlit")

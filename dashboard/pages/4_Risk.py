@@ -6,11 +6,12 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+from dashboard.ui import apply_theme, page_header, style_fig, result_card, MUTED, GOOD, WARN, BAD
 
 st.set_page_config(page_title="Risk Dashboard", page_icon="⚠️", layout="wide")
 
-st.markdown("## ⚠️ Financial Risk Prediction")
-st.markdown("Predict company financial risk using **XGBoost** with **SHAP** explainability.")
+apply_theme()
+page_header("Risk Prediction", "Estimate financial risk with XGBoost and see exactly which metrics drive the score using SHAP.", eyebrow="Step 4")
 
 # ── Load predictor ───────────────────────────────────────────
 @st.cache_resource
@@ -20,11 +21,11 @@ def load_predictor():
 
 with st.spinner("Loading risk model..."):
     predictor = load_predictor()
-st.success("✅ Risk model ready")
+st.caption("Risk model ready")
 
 # ── Sidebar — manual input ───────────────────────────────────
 with st.sidebar:
-    st.markdown("### 📊 Enter Financial Metrics")
+    st.markdown("### Financial metrics")
     roa               = st.slider("Return on Assets (ROA)",        -0.30, 0.30,  0.10, 0.01)
     roe               = st.slider("Return on Equity (ROE)",        -0.50, 0.50,  0.15, 0.01)
     current_ratio     = st.slider("Current Ratio",                  0.10, 5.00,  1.50, 0.10)
@@ -33,10 +34,10 @@ with st.sidebar:
     revenue_growth    = st.slider("Revenue Growth",                -0.30, 0.40,  0.05, 0.01)
     interest_coverage = st.slider("Interest Coverage Ratio",        0.00, 25.00, 5.00, 0.50)
     cash_ratio        = st.slider("Cash Ratio",                     0.00, 3.00,  0.50, 0.10)
-    predict_btn = st.button("🔍 Predict Risk", type="primary", use_container_width=True)
+    predict_btn = st.button("Predict risk", type="primary", use_container_width=True)
 
 # ── Tabs ─────────────────────────────────────────────────────
-tab1, tab2 = st.tabs(["🔍 Custom Prediction", "🏢 Sample Companies"])
+tab1, tab2 = st.tabs(["Custom prediction", "Sample companies"])
 
 # ── Tab 1: Custom prediction ─────────────────────────────────
 with tab1:
@@ -54,15 +55,8 @@ with tab1:
         result = predictor.predict(financials)
 
         # Risk header
-        st.markdown(f"""
-        <div style='background:#1e293b; border:2px solid {result["risk_color"]};
-                    border-radius:12px; padding:1.5rem; text-align:center; margin-bottom:1rem;'>
-            <h1 style='color:{result["risk_color"]}; margin:0;'>
-                {result["risk_icon"]} {result["risk_label"]}
-            </h1>
-            <p style='color:#94a3b8; margin:0;'>Confidence: {result["confidence"]}%</p>
-        </div>
-        """, unsafe_allow_html=True)
+        result_card(f'{result["risk_icon"]} {result["risk_label"]}',
+                    f'Confidence: {result["confidence"]}%', result["risk_color"])
 
         # Probability gauge
         col1, col2 = st.columns([1, 1])
@@ -70,21 +64,18 @@ with tab1:
             fig = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=result["probabilities"].get("High Risk", 0),
-                title={"text": "High Risk Probability %", "font": {"color": "#e2e8f0"}},
+                title={"text": "High risk probability (%)"},
                 gauge={
                     "axis": {"range": [0, 100]},
                     "bar":  {"color": result["risk_color"]},
                     "steps": [
-                        {"range": [0,  33], "color": "#1a3a2a"},
-                        {"range": [33, 66], "color": "#3a3010"},
-                        {"range": [66, 100],"color": "#3a1010"},
+                        {"range": [0,  33], "color": "rgba(22,163,74,.22)"},
+                        {"range": [33, 66], "color": "rgba(217,119,6,.22)"},
+                        {"range": [66, 100],"color": "rgba(220,38,38,.22)"},
                     ]
                 }
             ))
-            fig.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                font_color="#e2e8f0", height=300
-            )
+            style_fig(fig, 300)
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
@@ -93,18 +84,14 @@ with tab1:
                 x=list(probs.values()),
                 y=list(probs.keys()),
                 orientation="h",
-                marker_color=["#22c55e", "#f59e0b", "#ef4444"]
+                marker_color=[GOOD, WARN, BAD]
             ))
-            fig2.update_layout(
-                title="Risk Probabilities",
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font_color="#e2e8f0", height=300
-            )
+            fig2.update_layout(title="Risk probabilities (%)")
+            style_fig(fig2, 300)
             st.plotly_chart(fig2, use_container_width=True)
 
         # SHAP explanation
-        st.markdown("### 🧠 SHAP Explainability — Why this risk score?")
+        st.markdown("### Why this score? (SHAP)")
         try:
             from risk.explainer import RiskExplainer
             explainer = RiskExplainer(predictor.model, predictor.scaler)
@@ -124,38 +111,33 @@ with tab1:
                 df, x="SHAP Impact", y="Feature",
                 orientation="h",
                 color="SHAP Impact",
-                color_continuous_scale=["#22c55e", "#f59e0b", "#ef4444"],
-                title="Feature Impact on Risk Score"
+                color_continuous_scale=[GOOD, WARN, BAD],
+                title="Feature impact on risk score"
             )
-            fig3.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font_color="#e2e8f0", height=400
-            )
+            style_fig(fig3, 400)
             st.plotly_chart(fig3, use_container_width=True)
 
         except Exception as e:
             st.warning(f"SHAP explanation unavailable: {e}")
 
     else:
-        st.info("👈 Adjust the financial metrics in the sidebar and click **Predict Risk**")
+        st.info("Adjust the financial metrics in the sidebar, then click **Predict risk**.")
 
 # ── Tab 2: Sample companies ───────────────────────────────────
 with tab2:
-    st.markdown("### 🏢 Risk Analysis — Sample Companies")
+    st.markdown("### Sample companies")
     samples = predictor.predict_sample_companies()
 
     cols = st.columns(len(samples))
     for i, result in enumerate(samples):
         with cols[i]:
             st.markdown(f"""
-            <div style='background:#1e293b; border:2px solid {result["risk_color"]};
-                        border-radius:10px; padding:1rem; text-align:center;'>
-                <h3 style='color:#38bdf8;'>{result["company_name"]}</h3>
-                <h2 style='color:{result["risk_color"]};'>
+            <div class='fi-card center' style='border-top:4px solid {result["risk_color"]};'>
+                <div class='fi-card-title' style='color:{MUTED};'>{result["company_name"]}</div>
+                <h3 style='color:{result["risk_color"]}; margin:.3rem 0;'>
                     {result["risk_icon"]} {result["risk_label"]}
-                </h2>
-                <p style='color:#94a3b8;'>Confidence: {result["confidence"]}%</p>
+                </h3>
+                <p class='fi-card-text'>Confidence {result["confidence"]}%</p>
             </div>
             """, unsafe_allow_html=True)
 

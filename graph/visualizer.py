@@ -18,8 +18,8 @@ class GraphVisualizer:
         net = Network(
             height=height,
             width="100%",
-            bgcolor="#0f172a",
-            font_color="#e2e8f0",
+            bgcolor="#0b0f14",
+            font_color="#e6edf3",
             directed=True
         )
 
@@ -37,10 +37,10 @@ class GraphVisualizer:
                 "stabilization": { "iterations": 150 }
             },
             "edges": {
-                "color": { "color": "#475569" },
+                "color": { "color": "#4b5563" },
                 "smooth": { "type": "continuous" },
                 "arrows": { "to": { "enabled": true, "scaleFactor": 0.5 } },
-                "font": { "size": 10, "color": "#94a3b8" }
+                "font": { "size": 10, "color": "#9aa4b2" }
             },
             "interaction": {
                 "hover": true,
@@ -61,7 +61,7 @@ class GraphVisualizer:
                 color=color,
                 size=size,
                 title=f"<b>{node}</b><br>Type: {node_type}",
-                font={"size": 12, "color": "#e2e8f0"}
+                font={"size": 12, "color": "#e6edf3"}
             )
 
         # Add edges
@@ -71,7 +71,7 @@ class GraphVisualizer:
                 src, dst,
                 title=label,
                 label=label,
-                color="#475569"
+                color="#4b5563"
             )
 
         net.save_graph(self.output_path)

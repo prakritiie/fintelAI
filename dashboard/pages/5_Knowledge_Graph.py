@@ -6,11 +6,12 @@ import streamlit as st
 import streamlit.components.v1 as components
 import plotly.graph_objects as go
 import pandas as pd
+from dashboard.ui import apply_theme, page_header, style_fig
 
 st.set_page_config(page_title="Knowledge Graph", page_icon="🕸️", layout="wide")
 
-st.markdown("## 🕸️ Financial Knowledge Graph")
-st.markdown("Visualize relationships between companies, industries, competitors, risks, and products.")
+apply_theme()
+page_header("Knowledge Graph", "Explore how companies, industries, competitors, risks and products connect.", eyebrow="Step 5")
 
 # ── Load builder and visualizer ──────────────────────────────
 @st.cache_resource
@@ -23,7 +24,7 @@ builder, visualizer = load_graph_tools()
 
 # ── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### ⚙️ Settings")
+    st.markdown("### Settings")
     available = ["Apple", "Tesla", "Microsoft", "Berkshire Hathaway", "Google"]
     selected  = st.multiselect(
         "Select Companies",
@@ -33,7 +34,7 @@ with st.sidebar:
 
     graph_height = st.slider("Graph Height (px)", 400, 900, 600, 50)
 
-    st.markdown("### 🎨 Node Legend")
+    st.markdown("### Node legend")
     legend = [
         ("#38bdf8", "Company"),
         ("#a78bfa", "CEO"),
@@ -48,7 +49,7 @@ with st.sidebar:
             unsafe_allow_html=True
         )
 
-    build_btn = st.button("🔨 Build Graph", type="primary", use_container_width=True)
+    build_btn = st.button("Build graph", type="primary", use_container_width=True)
 
 # ── Build and display graph ───────────────────────────────────
 if build_btn or "graph_built" not in st.session_state:
@@ -83,7 +84,7 @@ if "graph_html" in st.session_state:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Relationship table ────────────────────────────────────
-    st.markdown("### 📋 Relationship Explorer")
+    st.markdown("### Relationship explorer")
     graph = st.session_state.graph_obj
 
     rows = []
@@ -111,7 +112,7 @@ if "graph_html" in st.session_state:
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     # ── Node type distribution ────────────────────────────────
-    st.markdown("### 📊 Node Type Distribution")
+    st.markdown("### Node type distribution")
     type_counts = {}
     for _, attrs in graph.nodes(data=True):
         t = attrs.get("node_type", "unknown")
@@ -131,11 +132,5 @@ if "graph_html" in st.session_state:
         y=list(type_counts.values()),
         marker_color=[color_map.get(k, "#ffffff") for k in type_counts.keys()]
     ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#e2e8f0",
-        height=300,
-        margin=dict(t=20, b=20)
-    )
+    style_fig(fig, 300)
     st.plotly_chart(fig, use_container_width=True)

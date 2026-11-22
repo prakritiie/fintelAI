@@ -1,8 +1,31 @@
+# Environments & secrets
+.venv/
 venv/
-__pycache__/
-*.pyc
+env/
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Generated / local data (recreated by the app)
 data/chroma_db/
 data/raw/
+data/processed/
+lib/
 logs/
+*.log
+
+# Trained models (auto-trained on first run if missing)
 risk/saved_models/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
